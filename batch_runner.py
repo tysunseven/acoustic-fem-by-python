@@ -25,14 +25,47 @@ def process_single_structure(args):
     scale = res_out / res_in
     struct_fem = zoom(struct_8x8, scale, order=0) # 最近邻插值
     
-    # 3. 构造全场并计算
-    # ... (此处复用之前提供的构造 x_total 的逻辑) ...
-    # 为简洁省略具体构建代码，参考上一轮的 run_single_simulation
+    # 3. 构造全场 (构建包含左右波导的计算域)
+    # 获取参数
+    Lx_half = params['Lx_half']
+    resolution = GRID_CONFIG['resolution'] # 128
     
-    solver = AcousticFEMSolver(params)
-    # ... solve ...
-    # return T, R
-    return 0.0, 0.0 # 占位符
+    # 计算总尺寸
+    # 宽度 = 左波导(Lx_half) + 设计区域(1) + 右波导(Lx_half)
+    full_width_blocks = 2 * Lx_half + 1
+    full_width_pixels = full_width_blocks * resolution
+    full_height_pixels = resolution
+    
+    # 初始化全场为空气 (0)
+    x_total = np.zeros((full_height_pixels, full_width_pixels))
+    
+    # 计算设计区域的插入位置
+    start_col = Lx_half * resolution
+    end_col = start_col + resolution
+    
+    # 填入插值后的结构
+    # 注意：需确保 struct_fem 尺寸与插入区域严格匹配
+    # 如果 zoom 产生细微误差，可以使用切片强制赋值
+    if struct_fem.shape != (resolution, resolution):
+         # 简单的尺寸保护，防止 crash
+         from scipy.ndimage import zoom as scipy_zoom
+         scale_fix = resolution / struct_fem.shape[0]
+         struct_fem = scipy_zoom(struct_fem, scale_fix, order=0)
+         
+    x_total[:, start_col:end_col] = struct_fem
+    
+    # 4. 求解
+    try:
+        solver = AcousticFEMSolver(params)
+        P_grid = solver.solve(x_total)
+        
+        # 计算透射和反射系数 (传入设计区域分辨率用于定位测量点)
+        T, R = solver.calculate_TR(P_grid, resolution)
+        return T, R
+        
+    except Exception as e:
+        print(f"Simulation failed for a structure: {e}")
+        return np.nan, np.nan
 
 def main():
     parser = argparse.ArgumentParser(description="Acoustic FEM Batch Solver")
