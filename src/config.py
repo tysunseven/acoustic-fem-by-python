@@ -2,7 +2,7 @@ import numpy as np
 
 # 物理常数配置 (与 MATLAB define_acoustic_params.m 保持一致)
 PHYSICS_PARAMS = {
-    'Lx_design': 0.03,      # 设计区域长度 (m)
+    'Lx_design': 0.032,      # 设计区域长度 (m)
     'Lx_half': 10,          # 左右波导长度倍数
     'rhoa': 1.225,          # 空气密度
     'kappaa': 141834.999,   # 空气体积模量

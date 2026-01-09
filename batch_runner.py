@@ -19,11 +19,14 @@ def process_single_structure(args):
     params['k'] = params['omega'] / params['c']
     params['Ly_design'] = params['Lx_design']
     
-    # 2. 插值放大
+    # 2. 插值放大 (使用 kron 替代 zoom 以保证绝对的块状对齐)
     res_in = GRID_CONFIG['input_resolution']
     res_out = GRID_CONFIG['resolution']
-    scale = res_out / res_in
-    struct_fem = zoom(struct_8x8, scale, order=0) # 最近邻插值
+    scale = int(res_out / res_in) # 确保是整数，例如 16
+    
+    # 使用克罗内克积进行精确放大 (每个像素变为 scale x scale 的块)
+    # 这一步等价于 MATLAB 的 imresize(..., 'nearest') 且无坐标偏差
+    struct_fem = np.kron(struct_8x8, np.ones((scale, scale)))
     
     # 3. 构造全场 (构建包含左右波导的计算域)
     # 获取参数
