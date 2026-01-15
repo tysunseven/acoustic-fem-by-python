@@ -1,3 +1,11 @@
+import os
+if os.environ.get("ACOUSTIC_FEM_FORCE_SINGLE_THREAD", "True") == "True":
+    os.environ["OMP_NUM_THREADS"] = "1"
+    os.environ["MKL_NUM_THREADS"] = "1"
+    os.environ["OPENBLAS_NUM_THREADS"] = "1"
+    os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+    os.environ["NUMEXPR_NUM_THREADS"] = "1"
+
 # acoustic_fem/__init__.py
 from .simulation import AcousticSimulator
 
