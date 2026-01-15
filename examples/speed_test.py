@@ -1,15 +1,14 @@
+import sys
 import os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # ==============================================================================
 # 【关键设置】强制底层数值库使用单线程
 # 必须在 import numpy/scipy 之前设置！
 # 否则 8 个 worker 会产生 8 x (CPU核数) 个线程，导致严重的上下文切换和性能下降。
 # ==============================================================================
-os.environ["OMP_NUM_THREADS"] = "1"
-os.environ["MKL_NUM_THREADS"] = "1"
-os.environ["OPENBLAS_NUM_THREADS"] = "1"
-os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
-os.environ["NUMEXPR_NUM_THREADS"] = "1"
+import acoustic_fem
 
 import time
 import numpy as np
